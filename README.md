@@ -1,70 +1,93 @@
-# Getting Started with Create React App
+# SpawnBase UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React admin dashboard for the SpawnBase database provisioning platform.
 
-## Available Scripts
+> ⚠️ Educational project. Not intended for production use.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Backend Repository
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+[spawnbase](https://github.com/psuresh546/spawnbase) — Java/Spring Boot microservices backend. Start the backend before running the UI.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Layer | Technology |
+|---|---|
+| Framework | React 18 (Create React App) |
+| HTTP client | Axios |
+| Routing | React Router v6 |
+| Served in Docker | nginx:alpine |
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Running Locally
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Prerequisites
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Node 20+
+- SpawnBase backend running on port 8080
 
-### `npm run eject`
+### Development server
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm install
+npm start
+# Opens http://localhost:3000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Production build (Docker)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+# From spawnbase/ root (sibling directory):
+docker-compose up -d
+# UI served at http://localhost:3000 via nginx
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## Features
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Dashboard** — live instance list with state badges, DB type indicators, auto-refresh every 10 seconds
+- **Create instance** — modal form: name, DB type, owner
+- **Instance detail** — state timeline, event log, credential reveal, recover button
+- **Provisioning flow** — create → transition → provision in 3 sequential API calls
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+spawnbase-ui/
+├── public/
+└── src/
+    ├── api/
+    │   └── client.js               API client + token management
+    ├── components/
+    │   ├── StatCard.js              Dashboard stat card
+    │   ├── StateBadge.js            Coloured state pill
+    │   ├── DbTypeBadge.js           DB type indicator
+    │   ├── InstanceTable.js         Paginated instance list
+    │   ├── EventLog.js              State change timeline
+    │   └── CreateInstanceModal.js   Provision form
+    └── pages/
+        ├── Dashboard.js             Main dashboard
+        └── InstanceDetail.js        Single instance view
+```
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Environment
 
-### Making a Progressive Web App
+The UI calls the API Gateway at `http://localhost:8080` (hardcoded in `src/api/client.js`). To point at a different host, update `BASE_URL` in that file.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Future Scope
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Login page with token management
+- Stop / Start / Restart / Delete actions per instance
+- Real-time updates via WebSocket
+- Dark / light theme toggle
