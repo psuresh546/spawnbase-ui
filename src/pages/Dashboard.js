@@ -2,10 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { getDashboard, getInstances } from '../api/client';
 import StatCard from '../components/StatCard';
 import InstanceTable from '../components/InstanceTable';
-import CreateInstanceModal from
-    '../components/CreateInstanceModal';
+import CreateInstanceModal from '../components/CreateInstanceModal';
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
     const [summary, setSummary] = useState(null);
     const [instances, setInstances] = useState([]);
     const [pagination, setPagination] = useState(null);
@@ -40,7 +39,6 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchData();
-        // Auto-refresh every 10 seconds
         const interval = setInterval(fetchData, 10000);
         return () => clearInterval(interval);
     }, [fetchData]);
@@ -52,7 +50,6 @@ export default function Dashboard() {
             fontFamily: '-apple-system, BlinkMacSystemFont,' +
                         '"Segoe UI", sans-serif'
         }}>
-
             {/* Header */}
             <div style={{
                 background: 'white',
@@ -69,7 +66,7 @@ export default function Dashboard() {
                         fontWeight: 700,
                         color: '#111827'
                     }}>
-                        🚀 SpawnBase
+                        SpawnBase
                     </h1>
                     <div style={{
                         fontSize: 13,
@@ -79,7 +76,7 @@ export default function Dashboard() {
                         Database Instance Control Plane
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <button
                         onClick={fetchData}
                         style={{
@@ -91,7 +88,7 @@ export default function Dashboard() {
                             fontSize: 13
                         }}
                     >
-                        🔄 Refresh
+                        Refresh
                     </button>
                     <button
                         onClick={() => setShowCreate(true)}
@@ -107,6 +104,21 @@ export default function Dashboard() {
                         }}
                     >
                         + New Instance
+                    </button>
+                    <button
+                        onClick={onLogout}
+                        style={{
+                            padding: '8px 16px',
+                            borderRadius: 8,
+                            border: '1px solid #fca5a5',
+                            background: 'white',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: 13,
+                            fontWeight: 500
+                        }}
+                    >
+                        Sign out
                     </button>
                 </div>
             </div>
@@ -227,13 +239,9 @@ export default function Dashboard() {
                         style={selectStyle}
                     >
                         <option value="">All DB Types</option>
-                        <option value="POSTGRESQL">
-                            🐘 PostgreSQL
-                        </option>
-                        <option value="MYSQL">🐬 MySQL</option>
-                        <option value="MONGODB">
-                            🍃 MongoDB
-                        </option>
+                        <option value="POSTGRESQL">PostgreSQL</option>
+                        <option value="MYSQL">MySQL</option>
+                        <option value="MONGODB">MongoDB</option>
                     </select>
 
                     {(filter.state || filter.dbType) && (
@@ -254,7 +262,7 @@ export default function Dashboard() {
                                 color: '#6b7280'
                             }}
                         >
-                            ✕ Clear
+                            Clear
                         </button>
                     )}
 
@@ -283,8 +291,7 @@ export default function Dashboard() {
                           }}>
                             Loading...
                           </div>
-                        : <InstanceTable
-                            instances={instances} />
+                        : <InstanceTable instances={instances} />
                     }
 
                     {/* Pagination */}
@@ -302,10 +309,9 @@ export default function Dashboard() {
                                     ...filter,
                                     page: filter.page - 1
                                 })}
-                                style={pageBtnStyle(
-                                    pagination.first)}
+                                style={pageBtnStyle(pagination.first)}
                             >
-                                ← Prev
+                                Prev
                             </button>
                             <span style={{
                                 padding: '6px 12px',
@@ -321,10 +327,9 @@ export default function Dashboard() {
                                     ...filter,
                                     page: filter.page + 1
                                 })}
-                                style={pageBtnStyle(
-                                    pagination.last)}
+                                style={pageBtnStyle(pagination.last)}
                             >
-                                Next →
+                                Next
                             </button>
                         </div>
                     )}
@@ -334,9 +339,7 @@ export default function Dashboard() {
             {showCreate && (
                 <CreateInstanceModal
                     onClose={() => setShowCreate(false)}
-                    onCreated={() => {
-                        fetchData();
-                    }}
+                    onCreated={() => { fetchData(); }}
                 />
             )}
         </div>

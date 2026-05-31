@@ -7,7 +7,7 @@ import StateBadge from '../components/StateBadge';
 import DbTypeBadge from '../components/DbTypeBadge';
 import EventLog from '../components/EventLog';
 
-export default function InstanceDetail() {
+export default function InstanceDetail({ onLogout }) {
     const { id } = useParams();
     const navigate = useNavigate();
     const [instance, setInstance] = useState(null);
@@ -120,10 +120,30 @@ export default function InstanceDetail() {
                         {instance.id}
                     </div>
                 </div>
-                <div style={{ marginLeft: 'auto',
-                    display: 'flex', gap: 8 }}>
+                <div style={{
+                    marginLeft: 'auto',
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center'
+                }}>
                     <StateBadge state={instance.state} />
                     <DbTypeBadge dbType={instance.dbType} />
+                    <button
+                        onClick={onLogout}
+                        style={{
+                            marginLeft: 8,
+                            padding: '6px 14px',
+                            borderRadius: 8,
+                            border: '1px solid #fca5a5',
+                            background: 'white',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: 13,
+                            fontWeight: 500
+                        }}
+                    >
+                        Sign out
+                    </button>
                 </div>
             </div>
 
@@ -134,9 +154,11 @@ export default function InstanceDetail() {
                 gap: 24
             }}>
                 {/* Left — Details */}
-                <div style={{ display: 'flex',
-                    flexDirection: 'column', gap: 20 }}>
-
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 20
+                }}>
                     {/* Info Card */}
                     <div style={cardStyle}>
                         <h3 style={cardTitleStyle}>
@@ -211,30 +233,29 @@ export default function InstanceDetail() {
                             {instance.state === 'RUNNING' && (
                                 <button
                                     onClick={handleShowCreds}
-                                    style={actionBtnStyle(
-                                        '#2563eb')}
+                                    style={actionBtnStyle('#2563eb')}
                                 >
-                                    {showCreds ? '🔒 Hide' :
-                                        '🔑 Show'} Credentials
+                                    {showCreds
+                                        ? 'Hide Credentials'
+                                        : 'Show Credentials'}
                                 </button>
                             )}
                             {instance.state === 'FAILED' && (
                                 <button
                                     onClick={handleRecover}
                                     disabled={recovering}
-                                    style={actionBtnStyle(
-                                        '#16a34a')}
+                                    style={actionBtnStyle('#16a34a')}
                                 >
                                     {recovering
                                         ? 'Recovering...'
-                                        : '🔄 Recover Instance'}
+                                        : 'Recover Instance'}
                                 </button>
                             )}
                             <button
                                 onClick={() => navigate('/')}
                                 style={actionBtnStyle('#6b7280')}
                             >
-                                ← Back to Dashboard
+                                Back to Dashboard
                             </button>
                         </div>
 
@@ -252,7 +273,7 @@ export default function InstanceDetail() {
                                     marginBottom: 12,
                                     color: '#166534'
                                 }}>
-                                    🔑 Connection Details
+                                    Connection Details
                                 </div>
                                 {[
                                     ['Username',
@@ -267,9 +288,7 @@ export default function InstanceDetail() {
                                         credentials.connectionUrl],
                                 ].map(([label, value]) => (
                                     <div key={label}
-                                        style={{
-                                            marginBottom: 8
-                                        }}>
+                                        style={{ marginBottom: 8 }}>
                                         <span style={{
                                             fontSize: 12,
                                             color: '#6b7280',
@@ -294,9 +313,7 @@ export default function InstanceDetail() {
 
                 {/* Right — Event Log */}
                 <div style={cardStyle}>
-                    <h3 style={cardTitleStyle}>
-                        📋 Event History
-                    </h3>
+                    <h3 style={cardTitleStyle}>Event History</h3>
                     <EventLog events={events} />
                 </div>
             </div>
