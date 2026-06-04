@@ -8,7 +8,10 @@ export default function CreateInstanceModal({
     const [form, setForm] = useState({
         name: '',
         dbType: 'POSTGRESQL',
-        ownerId: 'user-001'
+        ownerId: 'user-001',
+        dbName: '',
+        password: '',
+        username: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,18 +21,27 @@ export default function CreateInstanceModal({
             setError('Name is required');
             return;
         }
+        if (form.dbName && !/^[a-z][a-z0-9_]*$/.test(form.dbName)) {
+            setError('DB name: lowercase letters, digits, underscores only, must start with a letter');
+            return;
+        }
         setLoading(true);
         setError('');
         try {
-            // 1. Create instance
-            const res = await createInstance(form);
+            const res = await createInstance({
+                name: form.name,
+                dbType: form.dbType,
+                ownerId: form.ownerId
+            });
             const id = res.data.id;
 
-            // 2. Transition to PROVISIONING
             await transitionState(id, 'PROVISIONING');
 
-            // 3. Start provisioning (async)
-            await provisionInstance(id, form.dbType);
+            await provisionInstance(id, form.dbType, {
+                password: form.password || undefined,
+                dbName: form.dbName || undefined,
+                username: form.username || undefined
+            });
 
             onCreated(id);
             onClose();
@@ -52,8 +64,10 @@ export default function CreateInstanceModal({
                 background: 'white',
                 borderRadius: 16,
                 padding: 32,
-                width: 420,
-                boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
+                width: 460,
+                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                maxHeight: '90vh',
+                overflowY: 'auto'
             }}>
                 <h2 style={{
                     margin: '0 0 24px',
@@ -63,9 +77,7 @@ export default function CreateInstanceModal({
                     Create Database Instance
                 </h2>
 
-                <label style={labelStyle}>
-                    Instance Name
-                </label>
+                <label style={labelStyle}>Instance Name *</label>
                 <input
                     style={inputStyle}
                     placeholder="e.g. my-postgres-db"
@@ -75,9 +87,7 @@ export default function CreateInstanceModal({
                     })}
                 />
 
-                <label style={labelStyle}>
-                    Database Type
-                </label>
+                <label style={labelStyle}>Database Type</label>
                 <select
                     style={inputStyle}
                     value={form.dbType}
@@ -85,25 +95,48 @@ export default function CreateInstanceModal({
                         ...form, dbType: e.target.value
                     })}
                 >
-                    <option value="POSTGRESQL">
-                        🐘 PostgreSQL
-                    </option>
-                    <option value="MYSQL">
-                        🐬 MySQL
-                    </option>
-                    <option value="MONGODB">
-                        🍃 MongoDB
-                    </option>
+                    <option value="POSTGRESQL">PostgreSQL</option>
+                    <option value="MYSQL">MySQL</option>
+                    <option value="MONGODB">MongoDB</option>
                 </select>
 
-                <label style={labelStyle}>
-                    Owner ID
-                </label>
+                <label style={labelStyle}>Owner ID</label>
                 <input
                     style={inputStyle}
                     value={form.ownerId}
                     onChange={e => setForm({
                         ...form, ownerId: e.target.value
+                    })}
+                />
+
+                <label style={labelStyle}>
+                    Database Name
+                    <span style={{ color: '#9ca3af', fontWeight: 400 }}>
+                        {' '}(optional — auto-generated if blank)
+                    </span>
+                </label>
+                <input
+                    style={inputStyle}
+                    placeholder="e.g. myapp_db"
+                    value={form.dbName}
+                    onChange={e => setForm({
+                        ...form, dbName: e.target.value.toLowerCase()
+                    })}
+                />
+
+                <label style={labelStyle}>
+                    Password
+                    <span style={{ color: '#9ca3af', fontWeight: 400 }}>
+                        {' '}(optional — auto-generated if blank)
+                    </span>
+                </label>
+                <input
+                    style={inputStyle}
+                    type="password"
+                    placeholder="Leave blank to auto-generate"
+                    value={form.password}
+                    onChange={e => setForm({
+                        ...form, password: e.target.value
                     })}
                 />
 
@@ -134,11 +167,16 @@ export default function CreateInstanceModal({
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        style={primaryBtnStyle}
+                        style={{
+                            ...primaryBtnStyle,
+                            opacity: loading ? 0.7 : 1,
+                            cursor: loading
+                                ? 'not-allowed' : 'pointer'
+                        }}
                     >
                         {loading
                             ? 'Creating...'
-                            : '🚀 Create & Provision'}
+                            : 'Create & Provision'}
                     </button>
                 </div>
             </div>
@@ -183,7 +221,6 @@ const primaryBtnStyle = {
     border: 'none',
     background: '#2563eb',
     color: 'white',
-    cursor: 'pointer',
     fontSize: 14,
     fontWeight: 600
 };

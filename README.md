@@ -1,21 +1,52 @@
 # SpawnBase UI
 
-React admin dashboard for the SpawnBase database provisioning platform.
+**React admin dashboard for the SpawnBase database provisioning platform**
+
+[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
+[![Router](https://img.shields.io/badge/Router-React%20Router%20v6-informational)](https://reactrouter.com/)
+[![HTTP](https://img.shields.io/badge/HTTP-Axios-purple)](https://axios-http.com/)
+[![Served](https://img.shields.io/badge/Served-nginx%3Aalpine-lightgrey)](https://nginx.org/)
 
 > ⚠️ Educational project. Not intended for production use.
+
+SpawnBase UI is the admin frontend for [SpawnBase](https://github.com/psuresh546/spawnbase). It gives developers a dashboard to provision database containers, inspect instance state, retrieve encrypted connection credentials, and trigger lifecycle operations — all backed by the SpawnBase microservices API.
+
+## Table of Contents
+
+- [Why SpawnBase UI](#why-spawnbase-ui)
+- [Backend Repository](#backend-repository)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Connection String Format](#connection-string-format)
+- [Project Structure](#project-structure)
+- [Future Scope](#future-scope)
+
+---
+
+## Why SpawnBase UI
+
+Rather than expose raw API endpoints and leave the developer to `curl` their way through provisioning, SpawnBase UI gives a single place to:
+
+- Watch a container move through its lifecycle states in real time
+- Read masked credentials with one-click reveal and copy
+- Trigger operations like Stop, Start, Restart, and Recover with confirmation guards
+- See a live breakdown of instance counts by state and database type
+
+Auto-refresh every 10 seconds means the dashboard stays current without a page reload.
 
 ---
 
 ## Backend Repository
 
-[spawnbase](https://github.com/psuresh546/spawnbase) — Java/Spring Boot microservices backend. Start the backend before running the UI.
+Start the backend before running the UI: [spawnbase](https://github.com/psuresh546/spawnbase)
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
-|---|---|
+|-------|-----------|
 | Framework | React 18 (Create React App) |
 | HTTP client | Axios |
 | Routing | React Router v6 |
@@ -23,7 +54,22 @@ React admin dashboard for the SpawnBase database provisioning platform.
 
 ---
 
-## Running Locally
+## Features
+
+- Login with JWT token via the dev auth endpoint
+- Dashboard with stat cards — total, running, provisioning, stopped counts
+- DB type breakdown — PostgreSQL, MySQL, MongoDB instance counts
+- Instance list with state badges, DB type badges, port, and owner
+- Create instance modal — name, DB type, owner, database name, username, password
+- Instance detail — state timeline, event log, and connection strings
+- Operations — Stop, Start, Restart, Delete (with confirmation dialog), Recover
+- Credentials panel — masked password with show/hide/copy, `psql`/`mysql`/`mongosh` CLI strings, JDBC URL
+- Auto-refresh every 10 seconds
+- Sign out button on all pages
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
@@ -38,22 +84,34 @@ npm start
 # Opens http://localhost:3000
 ```
 
-### Production build (Docker)
+### Docker (via spawnbase compose)
 
 ```bash
-# From spawnbase/ root (sibling directory):
-docker-compose up -d
-# UI served at http://localhost:3000 via nginx
+# From the spawnbase/ directory (sibling of spawnbase-ui/)
+docker-compose build spawnbase-ui
+docker-compose up -d spawnbase-ui
 ```
 
 ---
 
-## Features
+## Connection String Format
 
-- **Dashboard** — live instance list with state badges, DB type indicators, auto-refresh every 10 seconds
-- **Create instance** — modal form: name, DB type, owner
-- **Instance detail** — state timeline, event log, credential reveal, recover button
-- **Provisioning flow** — create → transition → provision in 3 sequential API calls
+**PostgreSQL**
+```bash
+psql -h localhost -p <hostPort> -U <username> -d <dbName>
+```
+
+**MySQL**
+```bash
+mysql -h 127.0.0.1 -P <hostPort> -u <username> -p<password> <dbName>
+```
+
+**MongoDB**
+```bash
+mongosh "mongodb://<username>:<url-encoded-password>@localhost:<hostPort>/<dbName>"
+```
+
+> Note: URL-encode special characters in passwords — `@` → `%40`, `#` → `%23`.
 
 ---
 
@@ -61,33 +119,42 @@ docker-compose up -d
 
 ```
 spawnbase-ui/
-├── public/
 └── src/
     ├── api/
-    │   └── client.js               API client + token management
+    │   └── client.js              API client + token management
     ├── components/
-    │   ├── StatCard.js              Dashboard stat card
-    │   ├── StateBadge.js            Coloured state pill
-    │   ├── DbTypeBadge.js           DB type indicator
-    │   ├── InstanceTable.js         Paginated instance list
-    │   ├── EventLog.js              State change timeline
-    │   └── CreateInstanceModal.js   Provision form
+    │   ├── StatCard.js
+    │   ├── StateBadge.js
+    │   ├── DbTypeBadge.js
+    │   ├── InstanceTable.js
+    │   ├── EventLog.js
+    │   └── CreateInstanceModal.js
     └── pages/
-        ├── Dashboard.js             Main dashboard
-        └── InstanceDetail.js        Single instance view
+        ├── Login.js
+        ├── Dashboard.js
+        └── InstanceDetail.js
 ```
 
----
+### Directory Guide
 
-## Environment
+#### `src/api/`
 
-The UI calls the API Gateway at `http://localhost:8080` (hardcoded in `src/api/client.js`). To point at a different host, update `BASE_URL` in that file.
+Axios client with base URL configuration and JWT token injection. Token management utilities live here so all HTTP calls go through one consistent layer.
+
+#### `src/components/`
+
+Reusable UI pieces: stat cards for the dashboard summary, colored state and DB type badges, the instance table, the event log timeline, and the create instance modal with its form fields.
+
+#### `src/pages/`
+
+Top-level route components. `Login.js` handles token acquisition. `Dashboard.js` renders the summary cards and instance table with auto-refresh. `InstanceDetail.js` shows the state timeline, event log, operations panel, and credentials panel for a single instance.
 
 ---
 
 ## Future Scope
 
-- Login page with token management
-- Stop / Start / Restart / Delete actions per instance
 - Real-time updates via WebSocket
-- Dark / light theme toggle
+- Dark/light theme toggle
+- Bulk operations (delete all failed, stop all)
+- Instance search and advanced filtering
+- Usage metrics per instance

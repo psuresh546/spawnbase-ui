@@ -28,7 +28,7 @@ export default function Dashboard({ onLogout }) {
                 getInstances(params)
             ]);
             setSummary(dashRes.data);
-            setInstances(instRes.data.content);
+            setInstances(instRes.data.content.filter(i => i.state !== 'FAILED'));
             setPagination(instRes.data);
         } catch (err) {
             console.error('Failed to fetch data:', err);
@@ -222,9 +222,7 @@ export default function Dashboard({ onLogout }) {
                         style={selectStyle}
                     >
                         <option value="">All States</option>
-                        {['REQUESTED', 'PROVISIONING',
-                          'RUNNING', 'STOPPED', 'FAILED',
-                          'DELETED'].map(s => (
+                        {['REQUESTED', 'PROVISIONING', 'RUNNING', 'STOPPED', 'DELETED'].map(s => (
                             <option key={s} value={s}>{s}</option>
                         ))}
                     </select>

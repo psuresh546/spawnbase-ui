@@ -46,10 +46,10 @@ export const transitionState = (id, targetState) =>
     api.post(`/api/lifecycle/instances/${id}/transition`,
         { targetState });
 
-export const provisionInstance = (id, dbType) =>
+export const provisionInstance = (id, dbType, options = {}) =>
     api.post(
         `/api/provisioning/instances/${id}/provision`,
-        { dbType });
+        { dbType, ...options });
 
 export const recoverInstance = (id) =>
     api.post(`/api/instances/${id}/recover`);
@@ -68,3 +68,20 @@ export const getDatabaseTypes = () =>
 
 export const getStates = () =>
     api.get('/api/admin/states');
+
+// Add these to client.js
+export const stopInstance = (id, containerId) =>
+    api.post(`/api/provisioning/instances/${id}/stop`,
+        { containerId });
+
+export const startInstance = (id, containerId, dbType) =>
+    api.post(`/api/provisioning/instances/${id}/start`,
+        { containerId, dbType });
+
+export const restartInstance = (id, containerId) =>
+    api.post(`/api/provisioning/instances/${id}/restart`,
+        { containerId });
+
+export const deleteInstance = (id, containerId) =>
+    api.delete(`/api/provisioning/instances/${id}`,
+        { data: { containerId } });
